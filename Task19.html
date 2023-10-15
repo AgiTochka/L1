@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .widget {
+            width: 600px;
+            height: 600px;
+            overflow-x: hidden;
+            border: 1px solid grey;
+            color: black;
+        }
+        .widget div {
+            margin: 15px;
+            padding: 15px;
+            border: 1px solid grey;
+        }
+        .widget div ul{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            padding: 0;
+        }
+        .widget div ul li{
+            list-style: none;
+        }
+    </style>
+</head>
+<body>
+<div class="widget" id="widget">
+
+</div>
+<script>
+    // Количетсво подгружаемых постов 10, а оффсет подгружаем из localStorage, если есть, иначе принимает за 0.
+    let count = 10;
+    let offset = Number(localStorage.getItem("offset")) || 0;
+
+    // Функция реализует JSONP
+    function jsonpRequest(url, params, callback) {
+        // Генерируем уникальное имя функции колбэка
+        const callbackName = 'jsonpCallback' + Date.now();
+        // Создаем элемент script для отправки запроса JSONP
+        const script = document.createElement('script');
+
+        // Создаем функцию-колбэк с указанным именем
+        window[callbackName] = data => {
+            callback(data); // Обрабатываем данные с сервера
+            document.body.removeChild(script); // Удаляем элемент script
+            delete window[callbackName]; // Удаляем функцию-колбэк из глобального контекста
+        };
+        params.count = count;
+        params.offset = offset;
+        // Формируем URL для запроса JSONP, включая параметры и функцию-колбэк
+        const queryString = Object.keys(params)
+            .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(params[key]))
+            .join('&');
+
+        // Устанавливаем URL для элемента script и добавляем его в документ
+        script.src = url + '?' + queryString + '&callback=' + callbackName;
+        document.body.appendChild(script);
+        offset+=count;
+        localStorage.setItem("offset", offset);
+    }
+
+    // Функция для форматирования времени, принимает на вход время в unix формате, возвращает строку формата dd.mm.yy
+    function unixTimeToDateFormat(unixTime) {
+        const date = new Date(unixTime * 1000); // Умножаем на 1000, так как Unix-время в секундах
+
+        // Извлекаем день, месяц и год
+        const day = date.getDate();
+        const month = date.getMonth() + 1; // Месяцы в JavaScript начинаются с 0
+        const year = date.getFullYear() % 100; // Получаем последние две цифры года
+
+        // Форматируем день, месяц и год, чтобы они имели две цифры
+        const formattedDay = day.toString().padStart(2, '0');
+        const formattedMonth = month.toString().padStart(2, '0');
+        const formattedYear = year.toString().padStart(2, '0');
+
+        // Собираем дату в формате "dd.mm.yy"
+        const formattedDate = `${formattedDay}.${formattedMonth}.${formattedYear}`;
+
+        return formattedDate;
+    }
+
+    let url = `https://api.vk.com/method/wall.get?`;
+
+    let options = {
+        metod: 'POST',
+        headers: {
+            "Content-Type": "multipart/form-data",
+        },
+        owner_id: -1,
+        domain: 'apiclub',
+        count: 10,
+        offset: 0,
+        filter: 'all',
+        v:'5.154',
+        access_token: "0bb1d96c0bb1d96c0bb1d96c1d08a4316100bb10bb1d96c6e94e37bf6f8608233fd7b2b"
+    }
+
+
+
+    // Функция для сохранения постов в LocalSorage
+    function savePostsToLocalStorage(posts) {
+        // Получаем текущие посты из localStorage (если они есть)
+        let storedPosts = JSON.parse(localStorage.getItem('posts')) || [];
+
+        // Добавляем новые посты в начало массива
+        storedPosts.unshift(...posts);
+
+        // Проверяем размер данных в localStorage
+        let storageSize = JSON.stringify(storedPosts).length;
+        const maxStorageSize = 4194331/100; // Максимальный размер localStorage (4MB) (для проверки уменьшала в сто раз, а то долго листать)
+
+        if (storageSize > maxStorageSize) {
+            // Если размер данных превышает максимальный размер,
+            // удаляем первые загруженные посты, пока размер не станет меньше
+            while (storageSize > maxStorageSize) {
+                storedPosts.pop();
+                storageSize = JSON.stringify(storedPosts).length;
+            }
+        }
+
+        // Записываем обновленные посты в localStorage
+        localStorage.setItem('posts', JSON.stringify(storedPosts));
+        storageLength();
+    }
+
+    // Функция для создания дебаунсера через замыкания
+    // Функция debounce принимает два аргумента: fn (функция) и delay (задержка в миллисекундах).
+    function debounce(fn, delay) {
+        let timeoutId; // Переменная для хранения идентификатора таймаута
+
+        // Возвращаем анонимную функцию, которая будет использоваться вместо исходной функции fn.
+        return function (...args) {
+            // Очищаем предыдущий таймаут, чтобы предотвратить множественные вызовы fn.
+            clearTimeout(timeoutId);
+
+            // Устанавливаем новый таймаут, который вызовет fn через заданную задержку delay.
+            timeoutId = setTimeout(() => {
+                fn.apply(this, args); // Вызываем исходную функцию fn с переданными аргументами.
+            }, delay);
+        };
+    }
+    const widget = document.getElementById('widget');
+    function populate() {
+            if (isVisible(widget.lastElementChild)) runPosts();
+    }
+    function runPosts(){
+        console.log('1');
+        jsonpRequest(url, options, data => {
+            // Обрабатываем данные, полученные от сервера
+            savePostsToLocalStorage(data.response.items);
+            createPosts(data.response.items);
+            // console.log(data.response.items);
+        });
+    }
+    widget.addEventListener('scroll', debounce(populate, 300));
+    function isVisible(elem) {
+
+        let coords = elem.getBoundingClientRect();
+
+        let windowHeight = document.documentElement.clientHeight;
+
+        // верхний край элемента виден?
+        let topVisible = coords.top > 0 && coords.top < windowHeight;
+
+        // нижний край элемента виден?
+        let bottomVisible = coords.bottom < windowHeight && coords.bottom > 0;
+
+        return topVisible || bottomVisible;
+    }
+
+    // Функция принимает массив постов, который преобразует в элементы, добавляя их в DOM.
+    function createPosts (data){
+        data.forEach((post)=>{
+            const div = document.createElement("div");
+            const ul = document.createElement('ul');
+            const likes = document.createElement('li');
+            const comm = document.createElement('li');
+            const view = document.createElement('li');
+            const p = document.createElement('p');
+            const date = document.createElement('li');
+
+            comm.innerText = 'Комментарии: ' + (post.comments.count ? post.comments.count : "0");
+            likes.innerText = 'Лайки: ' + (post.likes.count ? post.likes.count : "0");
+            if(post.views) view.innerText = 'Просмотры: ' + (post.views.count ? post.views.count : "0");
+            p.innerText = post.text;
+            date.innerText = 'Дата публикации: ' + unixTimeToDateFormat(post.date);
+            ul.appendChild(comm);
+            ul.appendChild(likes);
+            ul.appendChild(view);
+            div.appendChild(ul);
+            div.appendChild(p);
+            div.appendChild(date);
+
+            widget.appendChild(div);
+        })
+
+
+    }
+
+    // Получаем текущие посты из localStorage (если они есть)
+    let storedPosts = JSON.parse(localStorage.getItem('posts')) || [];
+    if(storedPosts.length === 0) runPosts();
+    createPosts(storedPosts);
+
+
+    // Задание 20
+    // Функция выводит в консоль текущий размер localStorage;
+    function storageLength(){
+       console.log(JSON.stringify(localStorage).length + "/4194331");
+    }
+
+
+
+
+</script>
+</body>
+</html>

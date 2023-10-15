@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task4</title>
+</head>
+<body>
+<script type="module">
+    import declOfNum from './declOfNum.mjs';
+
+    const textForms = ['яблоко', 'яблока', 'яблок'];
+    console.log(declOfNum(5, textForms)); // Выведет 'яблок'
+    console.log(declOfNum(2, textForms)); // Выведет 'яблока'
+    console.log(declOfNum(11, textForms)); // Выведет 'яблок'
+</script>
+</body>
+</html>

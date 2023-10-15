@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task 24</title>
+    <style>
+        td {
+            padding: 5px;
+            border-bottom: 1px solid grey;
+        }
+        th{
+            cursor: pointer;
+            padding: 5px;
+            border-bottom: 1px solid grey;
+        }
+
+        div {
+            width: 200px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<table >
+    <tr>
+        <th id="HFname">Имя</th>
+        <th id="HLname">Фамилия</th>
+        <th id="HTel">Телефон</th>
+        <th id="HAddress">Адрес</th>
+        <th id="HCity">Город</th>
+        <th id="HState">Штат</th>
+        <th id="HZip">Индекс</th>
+    </tr>
+    <tbody id="container">
+
+    </tbody>
+</table>
+<div>
+    <button id="btn_start"> <<</button>
+    <button id="btn_prev"> <</button>
+    <label class="bold" id="prev">1</label><label id="current">2</label><label id="next">3</label>
+    <button id="btn_next"> ></button>
+    <button id="btn_end"> >></button>
+</div>
+<template id="template">
+    <tr>
+        <td id="fname"></td>
+        <td id="lname"></td>
+        <td id="tel"></td>
+        <td id="address"></td>
+        <td id="city"></td>
+        <td id="state"></td>
+        <td id="zip"></td>
+    </tr>
+</template>
+
+<script>
+    // Функция, которая загружает данные из источника
+    async function loadData() {
+        let url = "http://www.filltext.com/?rows=1000&fname=%7BfirstName%7D&lname=%7BlastName%7D&tel=%7Bphone%7Cformat%7D&address=%7BstreetAddress%7D&city=%7Bcity%7D&state=%7BusState%7Cabbr%7D&zip=%7Bzip%7D&pretty=true"
+        const response = await fetch(url)
+        if (!response.ok) {
+            throw new Error('Ошибка при выполнении запроса');//если произошла ошибка запроса, то выкидываем ошибку
+        }
+
+        const data = await response.json(); //возвращаем результат запроса
+        return data;
+    }
+
+    let template = document.getElementById('template');
+    let container = document.getElementById('container');
+
+    // Фуекция, которая создает 50 строк в таблице
+    function create50Rows(data, offset) {
+        container.innerHTML=" "; // Освобождаем контейнер от прошлых данных
+        for (let i = offset; i < offset + 50; i++) { //Для каждого объекта прописываем данные в нужную ячейку
+            let clone = template.content.cloneNode(true);
+            let fname = clone.querySelector("#fname");
+            let lname = clone.querySelector("#lname");
+            let tel = clone.querySelector("#tel");
+            let address = clone.querySelector("#address");
+            let city = clone.querySelector("#city");
+            let state = clone.querySelector("#state");
+            let zip = clone.querySelector("#zip");
+            let tr = clone.querySelector("tr");
+            fname.innerText = data[i].fname;
+            lname.innerText = data[i].lname;
+            tel.innerText = data[i].tel;
+            address.innerText = data[i].address;
+            city.innerText = data[i].city;
+            state.innerText = data[i].state;
+            zip.innerText = data[i].zip;
+            tr.appendChild(fname);
+            tr.appendChild(lname);
+            tr.appendChild(tel);
+            tr.appendChild(address);
+            tr.appendChild(city);
+            tr.appendChild(state);
+            tr.appendChild(zip);
+            clone.appendChild(tr);
+            container.appendChild(clone);
+        }
+    }
+
+    // Функция, которая перелистывает страницы
+    function getNext() {
+        if (offset < 900) {
+            offset += 50; // Увеличивыем индексы данных на 50
+            prev.innerText = (offset / 50).toString(); //Прописываем нумерацию страниц
+            current.innerText = (offset / 50 + 1).toString();
+            next.innerText = (offset / 50 + 2).toString();
+            prev.classList.remove("bold");
+            current.classList.add("bold");
+            next.classList.remove("bold");
+            create50Rows(arr, offset)
+        } else if (offset < 950) {
+            offset += 50;
+            prev.innerText = "18";
+            current.innerText = "19";
+            next.innerText = "20";
+            prev.classList.remove("bold");
+            current.classList.remove("bold");
+            next.classList.add("bold");
+            create50Rows(arr, offset)
+        }
+    }
+
+    function getPrev() {
+        if (offset >= 100) {
+            offset -= 50; // Уменьшаем индексы
+            prev.innerText = (offset / 50).toString();
+            current.innerText = (offset / 50 + 1).toString();
+            next.innerText = (offset / 50 + 2).toString();
+            prev.classList.remove("bold");
+            current.classList.add("bold");
+            next.classList.remove("bold");
+            create50Rows(arr, offset)
+        } else if(offset===50){
+            offset = 0;
+            prev.innerText = "1";
+            current.innerText = "2";
+            next.innerText = "3";
+            prev.classList.add("bold");
+            current.classList.remove("bold");
+            next.classList.remove("bold");
+            create50Rows(arr, offset);
+        }
+    }
+
+    // Функция принимает на вход поле, по которому будет проводиться сортировка, возвращает функцию сортировки.
+    function byField(fieldName){
+        return (a, b) => a[fieldName] > b[fieldName] ? 1 : -1;
+    }
+
+    let offset = 0;
+    let arr = [];
+    try {
+        loadData().then(data => {
+            arr = data;
+            create50Rows(arr, offset); // отображаем первые данные
+        })
+    } catch (err) {
+        console.error(err)
+    }
+
+    // Добавляем события на переключения страниц
+    let prev = document.getElementById('prev');
+    let current = document.getElementById('current');
+    let next = document.getElementById('next');
+    let btnStart = document.getElementById('btn_start');
+    btnStart.addEventListener('click', function () {
+        offset = 0;
+        prev.innerText = "1";
+        current.innerText = "2";
+        next.innerText = "3";
+        prev.classList.add("bold");
+        current.classList.remove("bold");
+        next.classList.remove("bold");
+        create50Rows(arr, offset);
+    });
+    let btnEnd = document.getElementById('btn_end');
+    btnEnd.addEventListener('click', function () {
+        offset = 950;
+        prev.innerText = "18";
+        current.innerText = "19";
+        next.innerText = "20";
+        prev.classList.remove("bold");
+        current.classList.remove("bold");
+        next.classList.add("bold");
+        create50Rows(arr, offset);
+    });
+    let btnPrev = document.getElementById('btn_prev');
+    btnPrev.addEventListener('click', function () {
+        getPrev();
+    });
+    let btnNext = document.getElementById('btn_next');
+    btnNext.addEventListener('click', function () {
+        getNext();
+    });
+
+    // Добавляем события сортировки на загаловки полей
+    document.getElementById('HFname').addEventListener('click',  function (){
+        arr.sort(byField('fname'));
+        create50Rows(arr, offset);
+    })
+    document.getElementById('HLname').addEventListener('click',  function (){
+        arr.sort(byField('lname'));
+        create50Rows(arr, offset);
+    })
+    document.getElementById('HTel').addEventListener('click',  function (){
+        arr.sort(byField('tel'));
+        create50Rows(arr, offset);
+    })
+    document.getElementById('HAddress').addEventListener('click',  function (){
+        arr.sort(byField('address'));
+        create50Rows(arr, offset);
+    })
+    document.getElementById('HCity').addEventListener('click',  function (){
+        arr.sort(byField('city'));
+        create50Rows(arr, offset);
+    })
+    document.getElementById('HState').addEventListener('click',  function (){
+        arr.sort(byField('state'));
+        create50Rows(arr, offset);
+    })
+    document.getElementById('HZip').addEventListener('click',  function (){
+        arr.sort(byField('zip'));
+        create50Rows(arr, offset);
+    })
+</script>
+</body>
+</html>

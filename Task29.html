@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task 29</title>
+</head>
+<body>
+
+<form>
+    <label>
+        Имя:
+        <input id="nameInput" type="text">
+    </label>
+    <label>
+        Phone:
+        <input id="phoneInput" type="tel">
+    </label>
+    <input id="submit" type="submit">
+</form>
+
+<form name="form2">
+    <label>
+        Имя:
+        <input name="name"  type="text">
+    </label>
+    <label>
+        Phone:
+        <input name="phone"  type="tel">
+    </label>
+    <input name="submit" type="submit">
+</form>
+
+<script>
+    // Функция выводит alert с данными из формы
+    function handleFormSubmit() {
+        // Получаем значения полей формы по id у input.
+        let name = document.getElementById("nameInput").value;
+        let phone = document.getElementById("phoneInput").value;
+
+        // Выводим значения в виде alert.
+        alert("Имя: " + name + "\nТелефон: " + phone);
+    }
+
+    // Функция выводит alert с данными из формы
+    function handleFormSubmit2(form) {
+        // Получаем значения полей формы, обращаясь по имени поля.
+        let name = form.elements.name.value;
+        let phone = form.elements.phone.value;
+
+        // Выводим значения в виде alert.
+        alert("Имя: " + name + "\nТелефон: " + phone);
+    }
+
+    // Пример использования функции handleFormSubmit.
+    document.getElementById("submit").addEventListener("click", handleFormSubmit);
+
+    // Пример использования функции handleFormSubmit2.
+    let form = document.form2;
+    form.submit.addEventListener("click", function () {
+        handleFormSubmit2(form);
+    })
+
+
+
+</script>
+</body>
+</html>

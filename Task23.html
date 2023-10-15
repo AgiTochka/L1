@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task 23</title>
+</head>
+<body>
+
+<label id="container">
+    <input id="passwordInput" type="password">
+</label>
+
+
+<script>
+    // Функция принимает на вход label для выведения оценки сложности пароля.
+    function evaluatePasswordStrength(label) {
+        // Получаем значение пароля из поля формы.
+        let password = document.getElementById("passwordInput").value;
+
+        // Проверяем длину пароля.
+        let lengthScore = password.length >= 8 ? 2 : 1;
+
+        // Проверяем наличие различных символов.
+        let symbolScore = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password) ? 2 : 1;
+
+        // Проверяем наличие чисел.
+        let numberScore = /\d/.test(password) ? 2 : 1;
+
+        // Проверяем наличие букв в разных регистрах.
+        let caseScore = /[a-z]/.test(password) && /[A-Z]/.test(password) ? 2 : 1;
+
+        // Считаем общий балл сложности пароля.
+        let totalScore = lengthScore + symbolScore + numberScore + caseScore;
+        // Выводим оценку сложности пароля.
+        if (totalScore >= 8) {
+            label.innerText = "Оценка сложности пароля: Сложный"
+        } else if (totalScore >= 6) {
+            label.innerText = "Оценка сложности пароля: Средний"
+        } else {
+            label.innerText = "Оценка сложности пароля: Слабый. Рекомендуется использовать пароль длиной не менее 8 символов, содержащий различные символы, числа и буквы в разных регистрах."
+        }
+    }
+
+    // Пример использования функции.
+    let label = document.createElement("label");
+    let container = document.getElementById("container");
+    container.appendChild(label);
+    document.getElementById("passwordInput").addEventListener("input", function () {
+        evaluatePasswordStrength(label)
+    });
+    
+</script>
+</body>
+</html>

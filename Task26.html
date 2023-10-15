@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div>
+    <p></p>
+    <ul>
+        <li></li>
+        <li><a href="#"></a></li>
+        <li></li>
+    </ul>
+</div>
+
+<script>
+    function traverseDOM(element) {
+        // Вывод информации о текущем узле
+        console.log("Тег:", element.tagName);
+        // Обход дочерних узлов
+        let child = element.firstChild;
+        while (child) {
+            // Проверка, что узел является элементом
+            if (child.nodeType === 1) {
+                // Рекурсивный вызов для дочернего элемента
+                traverseDOM(child);
+            }
+            // Переход к следующему дочернему элементу
+            child = child.nextSibling;
+        }
+    }
+
+    // Пример использования функции
+    let bodyElement = document.body;
+    traverseDOM(bodyElement);
+</script>
+</body>
+</html>

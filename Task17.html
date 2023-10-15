@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MapData</title>
+
+    <style>
+        li {
+            list-style: none;
+            cursor: pointer;
+            padding: 5px 0;
+            border-bottom: 1px solid grey;
+            border-top: 1px solid grey;
+        }
+        ul{
+            list-style: none;
+            padding: 0;
+            width: max-content;
+        }
+        .border{
+            border: 1px solid grey;
+        }
+        input{
+            width: 33%;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <input type="text" id="addressInput" placeholder="Введите адрес">
+        <ul id="suggestions">
+        </ul>
+    </div>
+<script>
+    // Функция для выполнения геокодинга
+    async function geocodeAddress(address) {
+        let url = "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address"; //url api
+        let token = "c2810e5be329d785c476a72cd6d8cc1e14d18bbd"; //api key
+        let options = { //Указываем параметры запроса
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "Authorization": "Token " + token
+            },
+            body: JSON.stringify({query: address}) //В теле запроса передаем адресс из input
+        }
+
+        const response = await fetch(url, options) //ассинхронно отправляем запрос
+        if (!response.ok) {
+            throw new Error('Ошибка при выполнении геокодирования');//если произошла ошибка запроса, то выкидываем ошибку
+        }
+
+        const data = await response.json(); //возвращаем результат запроса
+        return data;
+    }
+
+    // Функция для отображения подсказок
+    function showSuggestions(suggestions) {
+        const suggestionsList = document.getElementById('suggestions'); //получили лист для вывода подсказок
+        suggestionsList.classList.add('border');
+        suggestionsList.innerHTML = '';//Освободили его
+        let arr = Object.values(suggestions)[0]; //Запрос возвращает нам объект, где в первом элементе находится массив с подсказками
+        arr.forEach((suggestion) => { //проходимся по каждому элементу массива подсказок и добавляем данные в элемент li
+            const li = document.createElement('li');
+            li.textContent = suggestion.value;
+            li.addEventListener('click', () => { //также вешаем на каждый элемент прослушку события клика, чтобы пользователь выбрал нужный адресс
+                document.getElementById('addressInput').value = suggestion.value; //заполняем поле инпута выбранными данными
+                suggestionsList.innerHTML = ''; // Очищаем список подсказок после выбора
+                suggestionsList.classList.remove('border');
+            });
+            suggestionsList.appendChild(li);//добавляем итоговый список в DOM
+        });
+    }
+
+    // Функция для создания дебаунсера через замыкания
+    // Функция debounce принимает два аргумента: fn (функция) и delay (задержка в миллисекундах).
+    function debounce(fn, delay) {
+        let timeoutId; // Переменная для хранения идентификатора таймаута
+
+        // Возвращаем анонимную функцию, которая будет использоваться вместо исходной функции fn.
+        return function (...args) {
+            // Очищаем предыдущий таймаут, чтобы предотвратить множественные вызовы fn.
+            clearTimeout(timeoutId);
+
+            // Устанавливаем новый таймаут, который вызовет fn через заданную задержку delay.
+            timeoutId = setTimeout(() => {
+                fn.apply(this, args); // Вызываем исходную функцию fn с переданными аргументами.
+            }, delay);
+        };
+    }
+
+
+    // Обработчик события ввода в поле адреса с дебаунсингом
+    const addressInput = document.getElementById('addressInput'); //Получаем доступ к инпуту
+    const debouncedGeocode = debounce(async () => {  //создаем переменную, которая принимает функцию с дебаунсингом
+        const address = addressInput.value; //Получаем данные введенные пользователем
+        if (address.length >= 3) {//Если пользователь ввел больше 3 символов имеет смысл начать подсказывать
+            try {
+                const results = await geocodeAddress(address); //делаем запрос
+                showSuggestions(results);//выводим результат
+            } catch (error) {
+                console.error('Ошибка геокодирования:', error);
+            }
+        }
+    }, 300); // Задержка в миллисекундах
+
+    addressInput.addEventListener('input', debouncedGeocode);//вешаем прослушку на инпут
+
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task 22</title>
+</head>
+<body>
+<script>
+    // Считаем сколько раз можно вызвать функцию
+    let i = 0;
+    const func = () => {
+        i++;
+        return document.write(func())
+    };
+
+    try {
+        func();
+    } catch (e) {
+        // Словили ошибку переполнения стэка и вывели значение счетчика в консоль
+        console.log(i); //в моём браузере (brave) выдало 11406 раз, в firefox 26112 (иногда меньше, иногда больше)
+    }
+    // Согласно этому посту https://habr.com/ru/articles/305366/ должно быть не больше 20(21), но статья 2016 года и вероятно эти ограничения уже не действительны (или я не права, но...)
+
+    // попытка вызвать много (>25) document.write() ошибок ни в одном браузере не выдала
+    document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write(document.write("<h1> хай </h1>"))))))))))))))))))))))))))))));
+
+    // Метод сам по себе не очень популярный сейчас, поэтому не так много актуальных статей. Моё предположение почему такие цифры и почему они разные:
+    // Разный коллстек, сколько в него влезло столько и вызвалось.
+</script>
+</body>
+</html>

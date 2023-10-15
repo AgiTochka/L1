@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task 28</title>
+    <style>
+        .btn{
+            width: 150px;
+            height: 50px;
+            font-size: 36px;
+            line-height: 150%;
+            border-radius: 15px;
+            background: grey;
+            border: 1px solid black;
+            color: purple;
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<template id="template">
+    <div class="btn">Click me</div>
+</template>
+
+<div id="container">
+
+</div>
+
+<script>
+    // Функция принимает на вход шаблон и контейнер.
+    // Функция создает по шаблону новый элемент, модифицирует, и добавляет в DOM.
+    function createAndAddElement(template, container) {
+        // Создаем шаблон элемента.
+        let clone = template.content.cloneNode(true);
+
+        // Модифицируем элемент, меняем текст внутри div
+        let el = clone.querySelector("div");
+        el.textContent = "Hello!";
+        el.style.color = "black";
+
+        // Добавляем элемент в DOM.
+        container.appendChild(clone);
+    }
+
+    let template = document.getElementById("template");
+    let container = document.getElementById("container");
+    // Пример использования функции
+    createAndAddElement(template, container);
+
+
+</script>
+</body>
+</html>

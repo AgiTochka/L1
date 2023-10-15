@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<script>
+    function calculateLocalStorageSize(i) {
+        try {
+            // Создаем новый элемент в localStorage с уникальным ключом и значением
+            const key = 'localStorageSizeTest';
+            const testValue = 'a'.repeat(1024 * 1024 * i); // Создаем строку размером i МБ
+
+            // Пытаемся записать эту строку в localStorage
+            localStorage.setItem(key, testValue);
+
+            // После успешной записи строки, определяем размер localStorage
+            const usedSpace = JSON.stringify(localStorage).length;
+
+            // Удаляем тестовый элемент из localStorage
+            localStorage.removeItem(key);
+
+            return {
+                usedSpace
+            };
+        } catch (e) {
+            // Если браузер не поддерживает localStorage или пытались записать слищком много, обрабатываем ошибку
+            return {
+                error: 'LocalStorage не поддерживается в этом браузере или была попытка записать слишком много данных',
+            };
+        }
+    }
+    let i = 1;
+    let localStorageInfo = calculateLocalStorageSize(i); //Проверяем сначала 1 МБ
+    if (localStorageInfo.error) {
+        console.error(localStorageInfo.error);
+    } else {
+        console.log('Использовано места в localStorage (байты):', localStorageInfo.usedSpace);
+    }
+    while (!localStorageInfo.error){ //Увеличиваем размер записываем данных, пока не поймаем ошибку
+        i++;
+        localStorageInfo = calculateLocalStorageSize(i);
+        if (localStorageInfo.error) {
+            console.error(localStorageInfo.error);
+        } else {
+            console.log('Использовано места в localStorage (байты):', localStorageInfo.usedSpace); //выводим размер записанного в байтах, если получилось записать (у меня получилось в итоге 4195808)
+        }
+    }
+
+</script>
+</body>
+</html>

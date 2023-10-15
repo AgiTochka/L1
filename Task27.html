@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task 27</title>
+    <style>
+        div{
+            width: 0;
+            height: 0;
+            background: red;
+        }
+    </style>
+</head>
+<body>
+
+<div id="animate">
+
+</div>
+<script>
+    // Функция добавляет элементу анимацию по изменению ширины и высоты с заданной длительностью анимации в мс.
+    // Функция принимает на вход элемент для анимации, конечную ширину, конечную высоту, длительность анимации в мс.
+    function animateElement(element, targetWidth, targetHeight, duration) {
+        // Получаем начальные параметры, такие как текущая ширина и высота элемента.
+        let startWidth = element.offsetWidth;
+        let startHeight = element.offsetHeight;
+        // Получаем значения ширины и высоты, которые необходимо изменить.
+        let widthChange = targetWidth - startWidth;
+        let heightChange = targetHeight - startHeight;
+        // Начальное время равно 0.
+        let startTime = null;
+
+        // Функция для вычисления текущего времени анимации и прогресса, вызывается перед началом анимации
+        function animate(timestamp) {
+            // Если начальное время null или не указано, то принимается значение времени от создания документа
+            if (!startTime) startTime = timestamp;
+            // Вычисляем пройденное время
+            let elapsedTime = timestamp - startTime;
+            // Прогресс это отношение пройденного времени к длительности анимации
+            let progress = elapsedTime / duration;
+            // Установление нового значения ширины и высоты в зависимости от прогресса.
+            let newWidth = startWidth + widthChange * progress;
+            let newHeight = startHeight + heightChange * progress;
+
+            // Задаем элементу новую ширину и высоту.
+            element.style.width = newWidth + "px";
+            element.style.height = newHeight + "px";
+
+            // Если пройденное время меньше времени анимации, снова предупреждаем браузер и вызываем анимацию.
+            if (elapsedTime < duration) {
+                requestAnimationFrame(animate);
+            }
+        }
+        // Метод, указывает браузеру на то, что запланирована анимация.
+        // В качестве параметра принимает функцию, которая будет вызвана перед перерисовкой.
+        requestAnimationFrame(animate);
+    }
+
+    // Пример использования функции.
+    let elementToAnimate = document.getElementById("animate");
+    animateElement(elementToAnimate, 350, 400, 3000);
+</script>
+</body>
+</html>
